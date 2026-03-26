@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dex-poke", "dex-poke\dex-poke.csproj", "{719832B0-0848-4979-B4CF-9372D8798CCA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dex-poke.Shared", "dex-poke.Shared\dex-poke.Shared.csproj", "{165CE5DE-8ED3-4014-9035-23E961B03031}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dex-poke.Web", "dex-poke.Web\dex-poke.Web.csproj", "{48822DB5-D96C-4207-A58D-BE7FEDCA3A8F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{719832B0-0848-4979-B4CF-9372D8798CCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{719832B0-0848-4979-B4CF-9372D8798CCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{719832B0-0848-4979-B4CF-9372D8798CCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{719832B0-0848-4979-B4CF-9372D8798CCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{165CE5DE-8ED3-4014-9035-23E961B03031}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{165CE5DE-8ED3-4014-9035-23E961B03031}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{165CE5DE-8ED3-4014-9035-23E961B03031}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{165CE5DE-8ED3-4014-9035-23E961B03031}.Release|Any CPU.Build.0 = Release|Any CPU
+		{48822DB5-D96C-4207-A58D-BE7FEDCA3A8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48822DB5-D96C-4207-A58D-BE7FEDCA3A8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{48822DB5-D96C-4207-A58D-BE7FEDCA3A8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48822DB5-D96C-4207-A58D-BE7FEDCA3A8F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
