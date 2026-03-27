@@ -1,0 +1,60 @@
+@page "/pokedex"
+@using dex_poke.Shared.Services
+@inject PokeApiService PokeApi
+
+<PageTitle>Pokédex</PageTitle>
+
+<h1>Pokédex</h1>
+
+<div style="display:flex; gap:8px; margin-bottom:16px;">
+    <input @bind="query" @bind:event="oninput" placeholder="Name or number..." style="padding:6px; flex:1;" />
+    <button @onclick="Search">Search</button>
+</div>
+
+@if (loading)
+{
+    <p>Loading...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red;">@error</p>
+}
+else if (pokemon is not null)
+{
+    <div style="text-align:center;">
+        @if (pokemon.Sprites.FrontDefault is not null)
+        {
+            <img src="@pokemon.Sprites.FrontDefault" alt="@pokemon.Name" style="width:120px;height:120px;" />
+        }
+        <h2 style="text-transform:capitalize;">@pokemon.Name <small style="color:gray;">#@pokemon.Id</small></h2>
+        <p>Types: @string.Join(", ", pokemon.Types.Select(t => t.Type.Name))</p>
+        <p>Height: @(pokemon.Height / 10.0)m &nbsp; Weight: @(pokemon.Weight / 10.0)kg</p>
+    </div>
+}
+
+@code {
+    private string query = string.Empty;
+    private Pokemon? pokemon;
+    private bool loading;
+    private string? error;
+
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(query)) return;
+        loading = true;
+        error = null;
+        pokemon = null;
+        try
+        {
+            pokemon = await PokeApi.GetPokemonAsync(query.Trim());
+        }
+        catch
+        {
+            error = $"Could not find \"{query}\".";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

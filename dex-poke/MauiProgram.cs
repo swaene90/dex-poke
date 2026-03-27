@@ -16,6 +16,10 @@ public static class MauiProgram
         // Add device-specific services used by the dex_poke.Shared project
         builder.Services.AddSingleton<IFormFactor, FormFactor>();
 
+        builder.Services.AddMemoryCache();
+        builder.Services.AddHttpClient<PokeApiService>();
+        builder.Services.AddSingleton<IUserGamesService, UserGamesService>();
+
         builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG

@@ -1,0 +1,164 @@
+@page "/hunt"
+@using dex_poke.Shared.Services
+@inject PokeApiService PokeApi
+@inject IUserGamesService UserGames
+
+<PageTitle>Hunt</PageTitle>
+
+<h1>Hunt</h1>
+
+@if (!UserGames.OwnedGames.Any())
+{
+    <p>No games selected. <a href="/games">Add your games</a> to get started.</p>
+}
+else
+{
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input @bind="query" @bind:event="oninput" placeholder="Pokémon name or number..."
+               style="padding:6px; flex:1;" @onkeydown="OnKeyDown" />
+        <button @onclick="Search">Search</button>
+    </div>
+}
+
+@if (loading)
+{
+    <p>Searching...</p>
+}
+else if (error is not null)
+{
+    <p style="color:red;">@error</p>
+}
+else if (pokemon is not null)
+{
+    <!-- Pokémon header -->
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        @if (pokemon.Sprites.FrontDefault is not null)
+        {
+            <img src="@pokemon.Sprites.FrontDefault" style="width:80px;height:80px;" alt="@pokemon.Name" />
+        }
+        <div>
+            <h2 style="margin:0; text-transform:capitalize;">
+                @pokemon.Name <small style="color:gray; font-size:0.6em;">#@pokemon.Id</small>
+            </h2>
+            <div>@string.Join(" · ", pokemon.Types.Select(t => t.Type.Name))</div>
+            @if (hiddenAbility is not null)
+            {
+                <div style="margin-top:4px;">
+                    <strong>Hidden Ability:</strong>
+                    <span style="text-transform:capitalize;">@hiddenAbility</span>
+                </div>
+            }
+            else
+            {
+                <div style="margin-top:4px; color:gray;">No hidden ability</div>
+            }
+        </div>
+    </div>
+
+    <!-- Results per game -->
+    @if (!encountersByGame.Any())
+    {
+        <p style="color:gray;">No wild encounter data found for your games.</p>
+    }
+    else
+    {
+        @foreach (var (gameApiName, locations) in encountersByGame)
+        {
+            var gameInfo = GameData.ByApiName[gameApiName];
+            <details open style="margin-bottom:12px; border:1px solid #ddd; border-radius:6px; padding:10px;">
+                <summary style="cursor:pointer; font-weight:bold; font-size:1.05em;">
+                    @gameInfo.DisplayName
+                    <span style="font-weight:normal; color:gray; margin-left:8px;">
+                        ✨ @GameData.ShinyOdds(gameInfo.Generation)
+                        @if (hiddenAbility is not null)
+                        {
+                            <span style="margin-left:8px;">
+                                🎯 HA: @GameData.HiddenAbilityNote(gameInfo.Generation)
+                            </span>
+                        }
+                    </span>
+                </summary>
+
+                <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:0.92em;">
+                    <thead>
+                        <tr style="text-align:left; border-bottom:1px solid #ddd;">
+                            <th style="padding:4px 8px;">Location</th>
+                            <th style="padding:4px 8px;">Method</th>
+                            <th style="padding:4px 8px;">Encounter Rate</th>
+                            <th style="padding:4px 8px;">Levels</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var loc in locations)
+                        {
+                            <tr style="border-bottom:1px solid #f0f0f0;">
+                                <td style="padding:4px 8px;">@GameData.FormatLocationName(loc.LocationArea)</td>
+                                <td style="padding:4px 8px;">@GameData.FormatMethod(loc.Method)</td>
+                                <td style="padding:4px 8px;">@loc.MaxChance%</td>
+                                <td style="padding:4px 8px;">@loc.MinLevel–@loc.MaxLevel</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </details>
+        }
+    }
+}
+
+@code {
+    private string query = string.Empty;
+    private Pokemon? pokemon;
+    private string? hiddenAbility;
+    private Dictionary<string, List<EncounterLocation>> encountersByGame = [];
+    private bool loading;
+    private string? error;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(query)) return;
+
+        loading = true;
+        error = null;
+        pokemon = null;
+        encountersByGame = [];
+        hiddenAbility = null;
+
+        try
+        {
+            pokemon = await PokeApi.GetPokemonAsync(query.Trim());
+            if (pokemon is null)
+            {
+                error = $"Could not find \"{query}\".";
+                return;
+            }
+
+            hiddenAbility = pokemon.Abilities
+                .FirstOrDefault(a => a.IsHidden)?.Ability.Name;
+
+            var encounters = await PokeApi.GetEncountersAsync(query.Trim());
+
+            encountersByGame = encounters
+                .Where(e => UserGames.OwnedGames.Contains(e.GameApiName))
+                .GroupBy(e => e.GameApiName)
+                // Sort games by generation, then by the best (highest) encounter rate in that game
+                .OrderBy(g => GameData.ByApiName.TryGetValue(g.Key, out var gi) ? gi.Generation : 99)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.OrderByDescending(e => e.MaxChance).ToList()
+                );
+        }
+        catch
+        {
+            error = $"Could not find \"{query}\".";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}
